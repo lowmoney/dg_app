@@ -3,6 +3,7 @@ from django.http import response
 from django.shortcuts import render, redirect
 import os, boto3
 from secrets import token_urlsafe
+from pymango import MongoClient
 
 from .models import UserFiles, User, CustomeSessions
 
@@ -49,13 +50,14 @@ def files(request):
         session = boto3.session.Session()
         client = session.client('s3', region_name='sfo3', endpoint_url='https://sfo3.digitaloceanspaces.com', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET)
         client.put_object(Bucket='example-work-blob',
-                  Key='{}.{}'.format(file_name, file_type),
+                  Key='dg-app/{}.{}'.format(file_name, file_type),
                   Body=f,
                   ACL='private',
                 )
         f.close()
 
         public_url = client.generate_presigned_url(ClientMethod='get_object', Params={'Bucket':'example-work-blob','Key':'{}.{}'.format(file_name, file_type)}, ExpiresIn=10)
+
 
         user_file = UserFiles()
         user_file.pub_id = file_name
@@ -79,8 +81,10 @@ def files(request):
         public_urls = []
 
         for file in files:
-            public_url = client.generate_presigned_url(ClientMethod='get_object', Params={'Bucket':'example-work-blob','Key':'{}.{}'.format(file.pub_id, file.file_type)}, ExpiresIn=120)
+            public_url = client.generate_presigned_url(ClientMethod='get_object', Params={'Bucket':'example-work-blob','Key':'dg-app/{}.{}'.format(file.pub_id, file.file_type)}, ExpiresIn=120)
             public_urls.append(public_url)
+
+        print(public_urls)
 
         return render(request, 'user_files/index.html', {'urls':public_urls})
     else:
@@ -109,6 +113,7 @@ def login(request):
         if username and password is not None:
             try:
                 user = User.objects.get(username = username)
+                print('user found')
                 if password == user.password:
                     session = CustomeSessions()
                     session.session_key = token_urlsafe(32)
@@ -121,6 +126,7 @@ def login(request):
                     err = True
             except Exception as e:
                 print(e)
+
                 user = User()
                 session = CustomeSessions()
 
@@ -135,7 +141,7 @@ def login(request):
 
                 succ = True
                 response = redirect('/files')
-                response.set_cookie('session',user.session)
+                response.set_cookie('session',session)
 
 
         else:
@@ -148,6 +154,12 @@ def login(request):
         return response
 
 def log_off(request):
+    session = request.COOKIES.get('session')
+    try:
+        session = CustomeSessions.objects.get(session_key = session)
+        session.delete()
+    except:
+        pass
     response = redirect('/')
     response.delete_cookie('session')
 
