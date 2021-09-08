@@ -3,8 +3,7 @@ from django.http import response
 from django.shortcuts import render, redirect
 import os, boto3
 from secrets import token_urlsafe
-from pymango import MongoClient
-
+from django.core.exceptions import ObjectDoesNotExist
 from .models import UserFiles, User, CustomeSessions
 
 # Create your views here.
@@ -84,7 +83,6 @@ def files(request):
             public_url = client.generate_presigned_url(ClientMethod='get_object', Params={'Bucket':'example-work-blob','Key':'dg-app/{}.{}'.format(file.pub_id, file.file_type)}, ExpiresIn=120)
             public_urls.append(public_url)
 
-        print(public_urls)
 
         return render(request, 'user_files/index.html', {'urls':public_urls})
     else:
@@ -113,7 +111,6 @@ def login(request):
         if username and password is not None:
             try:
                 user = User.objects.get(username = username)
-                print('user found')
                 if password == user.password:
                     session = CustomeSessions()
                     session.session_key = token_urlsafe(32)
@@ -124,8 +121,7 @@ def login(request):
                     response.set_cookie('session', session.session_key)
                 else:
                     err = True
-            except Exception as e:
-                print(e)
+            except ObjectDoesNotExist:
 
                 user = User()
                 session = CustomeSessions()
@@ -142,6 +138,19 @@ def login(request):
                 succ = True
                 response = redirect('/files')
                 response.set_cookie('session',session)
+            except:
+                user = User.objects.get(username = username)
+                session = CustomeSessions.objects.get(user = user)
+                session.delete()
+                if password == user.password:
+                    session = CustomeSessions()
+                    session.session_key = token_urlsafe(32)
+                    session.user = user
+
+                    session.save()
+                    response = redirect('/files')
+                    response.set_cookie('session', session.session_key)
+
 
 
         else:
