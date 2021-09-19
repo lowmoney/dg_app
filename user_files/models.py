@@ -10,5 +10,5 @@ class UserFiles(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 class Sessions(models.Model):
-    session_key = models.CharField(max_length=32, unique=True, blank=True, null=False)
+    session_key = models.CharField(max_length=43, unique=True, blank=True, null=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, unique=True)
