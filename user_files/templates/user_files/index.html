@@ -28,44 +28,18 @@
 
         <div class="row">
             <div class="col">
-                <form id="upload_files" action="" method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="formFile" class="form-label">Upload Files</label>
-                        <input required class="form-control" type="file" id="formFile" name="file" multiple/>
-                    </div>
-
-                    <div>
-                        <button id="submit_btn" class="btn btn-success">
-                            Upload
-                        </button>
-
-                        <button style="display: none;" id="loading_btn" class="btn btn-success" type="button" disabled>
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            <span class="visually-hidden">Uploading...</span>
-                        </button>
-                    </div>
-                </form>
+                <a href="/register">Register Here</a>
+                <br/>
+                <a href="/login">Login Here</a>
+                <br/>
+                <a href="/files">See files Here</a>
             </div>
         </div>
 
-        {% if urls %}
 
-        <div class="row">
-            {% for url in urls %}
-            <div class="col-6 p-3">
-                <img src="{{url}}" class="img-thumbnail" alt=""/>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
     </div>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
 
-<script>
-    document.getElementById("upload_files").addEventListener('submit',(event) => {
-        document.getElementById("submit_btn").style.display = 'none'
-        document.getElementById("loading_btn").style.display = ''
-    })
-</script>
+
 </html>
